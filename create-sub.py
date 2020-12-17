@@ -23,10 +23,7 @@ class SubItem:
         self.speaker = speaker
         self.start = start
         self.stop = stop
-        self.text = text
-        if speaker:
-            self.text = text.split(":")[1:]
-            self.text = ":".join(self.text).strip()        
+        self.text = text        
 
     def toSRT(self, index: int,
                     max_char_line: int = 40,
@@ -82,7 +79,7 @@ class SubItem:
         return "{:02d}:{:02d}.{:03d}".format(m, s, int(ms*1000))
 
 
-def extract_segments_format_1(word_list: dict, punctuation_output: str) -> list:
+def extract_segments_format_1(word_list: dict, punctuation_output: str, speaker : str = None) -> list:
     subItems = []
     sentenceItems = []
     start_time = None
@@ -110,11 +107,11 @@ def extract_segments_format_1(word_list: dict, punctuation_output: str) -> list:
         
         for end_char in end_chars:
             if end_char in word:
-                subItems.append(SubItem(None, start_time, word_list[word_index - 1]["end"], " ".join(sentenceItems).replace("' ", "'")))
+                subItems.append(SubItem(speaker, start_time, word_list[word_index - 1]["end"], " ".join(sentenceItems).replace("' ", "'")))
                 new_sentence = True
                 break
         if len(sentenceItems) > 15:
-            subItems.append(SubItem(None, start_time, word_list[word_index - 1]["end"], " ".join(sentenceItems).replace("' ", "'")))
+            subItems.append(SubItem(speaker, start_time, word_list[word_index - 1]["end"], " ".join(sentenceItems).replace("' ", "'")))
             new_sentence = True
     return subItems
 
@@ -166,7 +163,7 @@ if __name__ == "__main__":
         items = extract_segments_format_1(content["words"], content["punctuation"])
     elif punctuation_data and speaker_data:
         #format 2
-        items = extract_segments_format_1(content["speakers"]["words"], content["punctuation"])
+        items = extract_segments_format_1(content["speakers"][0]["words"], content["punctuation"], speaker=content["speakers"][0]['speaker_id'])
     elif text_data and speaker_data:
         print("Format not supported yet.")
         exit(-1)
